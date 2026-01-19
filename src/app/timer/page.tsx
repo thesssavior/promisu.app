@@ -1,13 +1,15 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
+import { supabase } from "@/src/lib/supabase";
 
 interface TimeBlock {
   id: string;
-  duration: number; // in seconds
-  startTime: Date;
-  endTime: Date;
+  duration: number;
+  start_time: string;
+  end_time: string;
   description: string;
+  created_at: string;
 }
 
 function formatTime(seconds: number): string {
@@ -22,11 +24,13 @@ function formatTime(seconds: number): string {
 }
 
 function formatTimeOfDay(date: Date): string {
-  return date.toLocaleTimeString("en-US", {
-    hour: "numeric",
-    minute: "2-digit",
-    hour12: true,
-  }).toLowerCase();
+  return date
+    .toLocaleTimeString("en-US", {
+      hour: "numeric",
+      minute: "2-digit",
+      hour12: true,
+    })
+    .toLowerCase();
 }
 
 function formatDuration(seconds: number): string {
@@ -52,31 +56,28 @@ export default function TimerPage() {
   const [startTime, setStartTime] = useState<Date | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingDescription, setEditingDescription] = useState("");
+  const [isLoading, setIsLoading] = useState(true);
 
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const targetSeconds = targetMinutes * 60;
 
-  useEffect(() => {
-    // Load time blocks from localStorage
-    const saved = localStorage.getItem("timeBlocks");
-    if (saved) {
-      const parsed = JSON.parse(saved);
-      setTimeBlocks(
-        parsed.map((block: TimeBlock) => ({
-          ...block,
-          startTime: new Date(block.startTime),
-          endTime: new Date(block.endTime),
-        }))
-      );
+  const fetchTimeBlocks = useCallback(async () => {
+    const { data, error } = await supabase
+      .from("time_blocks")
+      .select("*")
+      .order("start_time", { ascending: false });
+
+    if (error) {
+      console.error("Error fetching time blocks:", error);
+    } else {
+      setTimeBlocks(data || []);
     }
+    setIsLoading(false);
   }, []);
 
   useEffect(() => {
-    // Save time blocks to localStorage
-    if (timeBlocks.length > 0) {
-      localStorage.setItem("timeBlocks", JSON.stringify(timeBlocks));
-    }
-  }, [timeBlocks]);
+    fetchTimeBlocks();
+  }, [fetchTimeBlocks]);
 
   useEffect(() => {
     if (isRunning) {
@@ -112,22 +113,41 @@ export default function TimerPage() {
     setCurrentDescription("");
   };
 
-  const handleComplete = () => {
+  const handleComplete = async () => {
     if (startTime && elapsedSeconds > 0) {
       const endTime = new Date();
-      const newBlock: TimeBlock = {
-        id: Date.now().toString(),
-        duration: elapsedSeconds,
-        startTime,
-        endTime,
-        description: currentDescription.trim() || "",
-      };
-      setTimeBlocks((prev) => [newBlock, ...prev]);
+
+      const { data, error } = await supabase
+        .from("time_blocks")
+        .insert({
+          duration: elapsedSeconds,
+          start_time: startTime.toISOString(),
+          end_time: endTime.toISOString(),
+          description: currentDescription.trim() || "",
+        })
+        .select()
+        .single();
+
+      if (error) {
+        console.error("Error saving time block:", error);
+        return;
+      }
+
+      if (data) {
+        setTimeBlocks((prev) => [data, ...prev]);
+      }
       handleReset();
     }
   };
 
-  const handleDeleteBlock = (id: string) => {
+  const handleDeleteBlock = async (id: string) => {
+    const { error } = await supabase.from("time_blocks").delete().eq("id", id);
+
+    if (error) {
+      console.error("Error deleting time block:", error);
+      return;
+    }
+
     setTimeBlocks((prev) => prev.filter((block) => block.id !== id));
   };
 
@@ -136,7 +156,17 @@ export default function TimerPage() {
     setEditingDescription(description);
   };
 
-  const handleSaveEdit = (id: string) => {
+  const handleSaveEdit = async (id: string) => {
+    const { error } = await supabase
+      .from("time_blocks")
+      .update({ description: editingDescription })
+      .eq("id", id);
+
+    if (error) {
+      console.error("Error updating time block:", error);
+      return;
+    }
+
     setTimeBlocks((prev) =>
       prev.map((block) =>
         block.id === id ? { ...block, description: editingDescription } : block
@@ -146,28 +176,46 @@ export default function TimerPage() {
     setEditingDescription("");
   };
 
+  const handleClearAll = async () => {
+    if (confirm("Are you sure you want to clear all time blocks?")) {
+      const { error } = await supabase.from("time_blocks").delete().neq("id", "");
+
+      if (error) {
+        console.error("Error clearing time blocks:", error);
+        return;
+      }
+
+      setTimeBlocks([]);
+    }
+  };
+
   const progress = Math.min((elapsedSeconds / targetSeconds) * 100, 100);
   const isOvertime = elapsedSeconds > targetSeconds;
 
   // Group time blocks by date
-  const groupedBlocks = timeBlocks.reduce((acc, block) => {
-    const dateKey = block.startTime.toLocaleDateString("en-US", {
-      weekday: "long",
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    });
-    if (!acc[dateKey]) {
-      acc[dateKey] = [];
-    }
-    acc[dateKey].push(block);
-    return acc;
-  }, {} as Record<string, TimeBlock[]>);
+  const groupedBlocks = timeBlocks.reduce(
+    (acc, block) => {
+      const date = new Date(block.start_time);
+      const dateKey = date.toLocaleDateString("en-US", {
+        weekday: "long",
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      });
+      if (!acc[dateKey]) {
+        acc[dateKey] = [];
+      }
+      acc[dateKey].push(block);
+      return acc;
+    },
+    {} as Record<string, TimeBlock[]>
+  );
 
   const totalTodaySeconds = timeBlocks
     .filter((block) => {
       const today = new Date();
-      return block.startTime.toDateString() === today.toDateString();
+      const blockDate = new Date(block.start_time);
+      return blockDate.toDateString() === today.toDateString();
     })
     .reduce((acc, block) => acc + block.duration, 0);
 
@@ -290,7 +338,11 @@ export default function TimerPage() {
         <div>
           <h2 className="text-2xl font-bold text-gray-900 mb-6">Time Blocks</h2>
 
-          {Object.keys(groupedBlocks).length === 0 ? (
+          {isLoading ? (
+            <div className="text-center py-12 text-gray-500">
+              <p>Loading...</p>
+            </div>
+          ) : Object.keys(groupedBlocks).length === 0 ? (
             <div className="text-center py-12 text-gray-500">
               <p>No time blocks yet. Start tracking your time!</p>
             </div>
@@ -313,7 +365,8 @@ export default function TimerPage() {
                               {formatDuration(block.duration)}
                             </span>
                             <span className="text-sm text-gray-500">
-                              {formatTimeOfDay(block.startTime)} - {formatTimeOfDay(block.endTime)}
+                              {formatTimeOfDay(new Date(block.start_time))} -{" "}
+                              {formatTimeOfDay(new Date(block.end_time))}
                             </span>
                           </div>
                           {editingId === block.id ? (
@@ -380,15 +433,7 @@ export default function TimerPage() {
         {/* Clear All Button */}
         {timeBlocks.length > 0 && (
           <div className="mt-8 pt-8 border-t border-gray-200">
-            <button
-              onClick={() => {
-                if (confirm("Are you sure you want to clear all time blocks?")) {
-                  setTimeBlocks([]);
-                  localStorage.removeItem("timeBlocks");
-                }
-              }}
-              className="text-red-500 hover:text-red-700 text-sm font-medium"
-            >
+            <button onClick={handleClearAll} className="text-red-500 hover:text-red-700 text-sm font-medium">
               Clear all time blocks
             </button>
           </div>
