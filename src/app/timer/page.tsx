@@ -57,8 +57,12 @@ export default function TimerPage() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingDescription, setEditingDescription] = useState("");
   const [isLoading, setIsLoading] = useState(true);
+  const [isCountdown, setIsCountdown] = useState(false);
+  const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
 
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const sessionStartRef = useRef<number>(0);
+  const accumulatedRef = useRef<number>(0);
   const targetSeconds = targetMinutes * 60;
 
   const fetchTimeBlocks = useCallback(async () => {
@@ -79,10 +83,35 @@ export default function TimerPage() {
     fetchTimeBlocks();
   }, [fetchTimeBlocks]);
 
+  // Update tab title with timer
+  useEffect(() => {
+    if (elapsedSeconds > 0 || isRunning) {
+      const displaySeconds = isCountdown
+        ? Math.max(targetSeconds - elapsedSeconds, 0)
+        : elapsedSeconds;
+      const timeStr = formatTime(displaySeconds);
+      const prefix = isCountdown && elapsedSeconds > targetSeconds ? "+" : "";
+      const overtime = isCountdown && elapsedSeconds > targetSeconds
+        ? formatTime(elapsedSeconds - targetSeconds)
+        : "";
+      document.title = isCountdown && elapsedSeconds > targetSeconds
+        ? `+${overtime} | Timer`
+        : `${prefix}${timeStr} | Timer`;
+    } else {
+      document.title = "Timer";
+    }
+
+    return () => {
+      document.title = "Timer";
+    };
+  }, [elapsedSeconds, isRunning, isCountdown, targetSeconds]);
+
   useEffect(() => {
     if (isRunning) {
+      sessionStartRef.current = Date.now();
       intervalRef.current = setInterval(() => {
-        setElapsedSeconds((prev) => prev + 1);
+        const sessionElapsed = Math.floor((Date.now() - sessionStartRef.current) / 1000);
+        setElapsedSeconds(accumulatedRef.current + sessionElapsed);
       }, 1000);
     } else if (intervalRef.current) {
       clearInterval(intervalRef.current);
@@ -103,12 +132,15 @@ export default function TimerPage() {
   };
 
   const handlePause = () => {
+    accumulatedRef.current = elapsedSeconds;
     setIsRunning(false);
   };
 
   const handleReset = () => {
     setIsRunning(false);
     setElapsedSeconds(0);
+    accumulatedRef.current = 0;
+    sessionStartRef.current = 0;
     setStartTime(null);
     setCurrentDescription("");
   };
@@ -141,6 +173,10 @@ export default function TimerPage() {
   };
 
   const handleDeleteBlock = async (id: string) => {
+    if (!confirm("Are you sure you want to delete this time block?")) {
+      return;
+    }
+
     const { error } = await supabase.from("time_blocks").delete().eq("id", id);
 
     if (error) {
@@ -149,6 +185,34 @@ export default function TimerPage() {
     }
 
     setTimeBlocks((prev) => prev.filter((block) => block.id !== id));
+  };
+
+  const handleContinue = (description: string) => {
+    if (isRunning || elapsedSeconds > 0) {
+      if (!confirm("A timer is already running. Reset and start a new one?")) {
+        return;
+      }
+    }
+    setIsRunning(false);
+    setElapsedSeconds(0);
+    accumulatedRef.current = 0;
+    sessionStartRef.current = 0;
+    setIsCountdown(false);
+    setCurrentDescription(description);
+    setStartTime(new Date());
+    setIsRunning(true);
+  };
+
+  const toggleGroup = (groupKey: string) => {
+    setExpandedGroups((prev) => {
+      const next = new Set(prev);
+      if (next.has(groupKey)) {
+        next.delete(groupKey);
+      } else {
+        next.add(groupKey);
+      }
+      return next;
+    });
   };
 
   const handleEditBlock = (id: string, description: string) => {
@@ -192,24 +256,25 @@ export default function TimerPage() {
   const progress = Math.min((elapsedSeconds / targetSeconds) * 100, 100);
   const isOvertime = elapsedSeconds > targetSeconds;
 
-  // Group time blocks by date
-  const groupedBlocks = timeBlocks.reduce(
+  // Group time blocks by description
+  const groupedByDescription = timeBlocks.reduce(
     (acc, block) => {
-      const date = new Date(block.start_time);
-      const dateKey = date.toLocaleDateString("en-US", {
-        weekday: "long",
-        year: "numeric",
-        month: "long",
-        day: "numeric",
-      });
-      if (!acc[dateKey]) {
-        acc[dateKey] = [];
+      const key = block.description || "Untitled session";
+      if (!acc[key]) {
+        acc[key] = [];
       }
-      acc[dateKey].push(block);
+      acc[key].push(block);
       return acc;
     },
     {} as Record<string, TimeBlock[]>
   );
+
+  // Sort groups by most recent block
+  const sortedGroups = Object.entries(groupedByDescription).sort((a, b) => {
+    const aLatest = new Date(a[1][0].start_time).getTime();
+    const bLatest = new Date(b[1][0].start_time).getTime();
+    return bLatest - aLatest;
+  });
 
   const totalTodaySeconds = timeBlocks
     .filter((block) => {
@@ -230,20 +295,55 @@ export default function TimerPage() {
           <p className="mt-4 text-lg text-gray-600">
             Track your time blocks and stay focused
           </p>
+          <a
+            href="/calendar"
+            className="inline-flex items-center gap-2 mt-4 text-sm text-gray-500 hover:text-gray-700 transition-colors"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+              <path fillRule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clipRule="evenodd" />
+            </svg>
+            View Calendar
+          </a>
         </div>
 
         {/* Timer Section */}
         <div className="bg-gray-50 rounded-2xl p-8 mb-8">
+          {/* Mode Toggle */}
+          <div className="flex items-center justify-center gap-2 mb-6">
+            <button
+              onClick={() => setIsCountdown(false)}
+              disabled={isRunning || elapsedSeconds > 0}
+              className={`px-4 py-2 rounded-l-full text-sm font-medium transition-colors ${
+                !isCountdown
+                  ? "bg-black text-white"
+                  : "bg-gray-200 text-gray-600 hover:bg-gray-300"
+              } disabled:opacity-50 disabled:cursor-not-allowed`}
+            >
+              Count Up
+            </button>
+            <button
+              onClick={() => setIsCountdown(true)}
+              disabled={isRunning || elapsedSeconds > 0}
+              className={`px-4 py-2 rounded-r-full text-sm font-medium transition-colors ${
+                isCountdown
+                  ? "bg-black text-white"
+                  : "bg-gray-200 text-gray-600 hover:bg-gray-300"
+              } disabled:opacity-50 disabled:cursor-not-allowed`}
+            >
+              Countdown
+            </button>
+          </div>
+
           {/* Target Time Input */}
           <div className="flex items-center justify-center gap-4 mb-8">
-            <label className="text-gray-500">Target:</label>
+            <label className="text-gray-500">{isCountdown ? "Duration:" : "Target:"}</label>
             <input
               type="number"
               min="1"
               max="180"
               value={targetMinutes}
               onChange={(e) => setTargetMinutes(Number(e.target.value))}
-              disabled={isRunning}
+              disabled={isRunning || elapsedSeconds > 0}
               className="text-gray-500 w-20 px-3 py-2 border border-gray-300 rounded-lg text-center focus:outline-none focus:ring-2 focus:ring-black disabled:bg-gray-100"
             />
             <span className="text-gray-500">minutes</span>
@@ -251,17 +351,36 @@ export default function TimerPage() {
 
           {/* Timer Display */}
           <div className="text-center mb-8">
-            <div
-              className={`text-7xl font-mono font-bold ${
-                isOvertime ? "text-red-500" : "text-gray-900"
-              }`}
-            >
-              {formatTime(elapsedSeconds)}
-            </div>
-            {isOvertime && (
-              <p className="text-red-500 mt-2">
-                +{formatTime(elapsedSeconds - targetSeconds)} overtime
-              </p>
+            {isCountdown ? (
+              <>
+                <div
+                  className={`text-7xl font-mono font-bold ${
+                    isOvertime ? "text-red-500" : "text-gray-900"
+                  }`}
+                >
+                  {isOvertime
+                    ? `+${formatTime(elapsedSeconds - targetSeconds)}`
+                    : formatTime(targetSeconds - elapsedSeconds)}
+                </div>
+                {isOvertime && (
+                  <p className="text-red-500 mt-2">Time&apos;s up! Overtime</p>
+                )}
+              </>
+            ) : (
+              <>
+                <div
+                  className={`text-7xl font-mono font-bold ${
+                    isOvertime ? "text-red-500" : "text-gray-900"
+                  }`}
+                >
+                  {formatTime(elapsedSeconds)}
+                </div>
+                {isOvertime && (
+                  <p className="text-red-500 mt-2">
+                    +{formatTime(elapsedSeconds - targetSeconds)} overtime
+                  </p>
+                )}
+              </>
             )}
           </div>
 
@@ -271,7 +390,11 @@ export default function TimerPage() {
               className={`h-3 rounded-full transition-all duration-300 ${
                 isOvertime ? "bg-red-500" : "bg-green-500"
               }`}
-              style={{ width: `${Math.min(progress, 100)}%` }}
+              style={{
+                width: isCountdown
+                  ? `${Math.max(100 - progress, 0)}%`
+                  : `${Math.min(progress, 100)}%`,
+              }}
             />
           </div>
 
@@ -342,71 +465,61 @@ export default function TimerPage() {
             <div className="text-center py-12 text-gray-500">
               <p>Loading...</p>
             </div>
-          ) : Object.keys(groupedBlocks).length === 0 ? (
+          ) : sortedGroups.length === 0 ? (
             <div className="text-center py-12 text-gray-500">
               <p>No time blocks yet. Start tracking your time!</p>
             </div>
           ) : (
-            Object.entries(groupedBlocks).map(([date, blocks]) => (
-              <div key={date} className="mb-8">
-                <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-4">
-                  {date}
-                </h3>
-                <div className="space-y-3">
-                  {blocks.map((block) => (
+            <div className="space-y-3">
+              {sortedGroups.map(([description, blocks]) => {
+                const isExpanded = expandedGroups.has(description);
+                const totalDuration = blocks.reduce((acc, b) => acc + b.duration, 0);
+
+                return (
+                  <div
+                    key={description}
+                    className="bg-white border border-gray-200 rounded-xl overflow-hidden"
+                  >
+                    {/* Group Header */}
                     <div
-                      key={block.id}
-                      className="bg-white border border-gray-200 rounded-xl p-4 hover:shadow-md transition-shadow"
+                      className="p-4 flex items-center justify-between gap-4 cursor-pointer hover:bg-gray-50 transition-colors"
+                      onClick={() => toggleGroup(description)}
                     >
-                      <div className="flex items-start justify-between gap-4">
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-3 mb-2">
-                            <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-800">
-                              {formatDuration(block.duration)}
-                            </span>
-                            <span className="text-sm text-gray-500">
-                              {formatTimeOfDay(new Date(block.start_time))} -{" "}
-                              {formatTimeOfDay(new Date(block.end_time))}
-                            </span>
-                          </div>
-                          {editingId === block.id ? (
-                            <div className="flex items-center gap-2">
-                              <input
-                                type="text"
-                                value={editingDescription}
-                                onChange={(e) => setEditingDescription(e.target.value)}
-                                className="text-gray-500 flex-1 px-3 py-1 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-black"
-                                autoFocus
-                                onKeyDown={(e) => {
-                                  if (e.key === "Enter") {
-                                    handleSaveEdit(block.id);
-                                  } else if (e.key === "Escape") {
-                                    setEditingId(null);
-                                  }
-                                }}
-                              />
-                              <button
-                                onClick={() => handleSaveEdit(block.id)}
-                                className="px-3 py-1 bg-black text-white rounded-lg text-sm hover:bg-gray-800"
-                              >
-                                Save
-                              </button>
-                            </div>
-                          ) : (
-                            <p
-                              className={`cursor-pointer hover:text-gray-600 ${
-                                block.description ? "text-gray-900" : "text-gray-400 italic"
-                              }`}
-                              onClick={() => handleEditBlock(block.id, block.description)}
-                            >
-                              {block.description || "Untitled session"}
-                            </p>
-                          )}
-                        </div>
+                      <div className="flex items-center gap-3 flex-1 min-w-0">
                         <button
-                          onClick={() => handleDeleteBlock(block.id)}
-                          className="p-2 text-gray-400 hover:text-red-500 transition-colors"
-                          aria-label="Delete time block"
+                          className="p-1 text-gray-400 hover:text-gray-600 transition-colors"
+                          aria-label={isExpanded ? "Collapse" : "Expand"}
+                        >
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            className={`h-5 w-5 transition-transform ${isExpanded ? "rotate-90" : ""}`}
+                            viewBox="0 0 20 20"
+                            fill="currentColor"
+                          >
+                            <path
+                              fillRule="evenodd"
+                              d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
+                              clipRule="evenodd"
+                            />
+                          </svg>
+                        </button>
+                        <div className="flex-1 min-w-0">
+                          <p className={`font-medium truncate ${description === "Untitled session" ? "text-gray-400 italic" : "text-gray-900"}`}>
+                            {description}
+                          </p>
+                          <div className="flex items-center gap-2 text-sm text-gray-500">
+                            <span>{formatDuration(totalDuration)}</span>
+                            <span>·</span>
+                            <span>{blocks.length} {blocks.length === 1 ? "session" : "sessions"}</span>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
+                        <button
+                          onClick={() => handleContinue(description === "Untitled session" ? "" : description)}
+                          className="p-2 text-gray-400 hover:text-green-500 transition-colors"
+                          aria-label="Continue timing"
+                          title="Continue"
                         >
                           <svg
                             xmlns="http://www.w3.org/2000/svg"
@@ -416,17 +529,87 @@ export default function TimerPage() {
                           >
                             <path
                               fillRule="evenodd"
-                              d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z"
+                              d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z"
                               clipRule="evenodd"
                             />
                           </svg>
                         </button>
                       </div>
                     </div>
-                  ))}
-                </div>
-              </div>
-            ))
+
+                    {/* Expanded Blocks */}
+                    {isExpanded && (
+                      <div className="border-t border-gray-200 bg-gray-50">
+                        {blocks.map((block) => (
+                          <div
+                            key={block.id}
+                            className="p-4 border-b border-gray-200 last:border-b-0 flex items-center justify-between gap-4"
+                          >
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-3">
+                                <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-gray-200 text-gray-800">
+                                  {formatDuration(block.duration)}
+                                </span>
+                                <span className="text-sm text-gray-500">
+                                  {formatTimeOfDay(new Date(block.start_time))} -{" "}
+                                  {formatTimeOfDay(new Date(block.end_time))}
+                                </span>
+                                <span className="text-sm text-gray-400">
+                                  {new Date(block.start_time).toLocaleDateString("en-US", {
+                                    month: "short",
+                                    day: "numeric",
+                                  })}
+                                </span>
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-1">
+                              {/* <button
+                                onClick={() => handleContinue(block.description)}
+                                className="p-2 text-gray-400 hover:text-green-500 transition-colors"
+                                aria-label="Continue timing"
+                                title="Continue"
+                              >
+                                <svg
+                                  xmlns="http://www.w3.org/2000/svg"
+                                  className="h-5 w-5"
+                                  viewBox="0 0 20 20"
+                                  fill="currentColor"
+                                >
+                                  <path
+                                    fillRule="evenodd"
+                                    d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z"
+                                    clipRule="evenodd"
+                                  />
+                                </svg>
+                              </button> */}
+                              <button
+                                onClick={() => handleDeleteBlock(block.id)}
+                                className="p-2 text-gray-400 hover:text-red-500 transition-colors"
+                                aria-label="Delete time block"
+                                title="Delete"
+                              >
+                                <svg
+                                  xmlns="http://www.w3.org/2000/svg"
+                                  className="h-5 w-5"
+                                  viewBox="0 0 20 20"
+                                  fill="currentColor"
+                                >
+                                  <path
+                                    fillRule="evenodd"
+                                    d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z"
+                                    clipRule="evenodd"
+                                  />
+                                </svg>
+                              </button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
           )}
         </div>
 
