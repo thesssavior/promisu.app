@@ -51,6 +51,7 @@ export default function TimerPage() {
   const [isRunning, setIsRunning] = useState(false);
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
   const [targetMinutes, setTargetMinutes] = useState(25);
+  const [targetInput, setTargetInput] = useState("25");
   const [currentDescription, setCurrentDescription] = useState("");
   const [timeBlocks, setTimeBlocks] = useState<TimeBlock[]>([]);
   const [startTime, setStartTime] = useState<Date | null>(null);
@@ -338,11 +339,30 @@ export default function TimerPage() {
           <div className="flex items-center justify-center gap-4 mb-8">
             <label className="text-gray-500">{isCountdown ? "Duration:" : "Target:"}</label>
             <input
-              type="number"
-              min="1"
-              max="180"
-              value={targetMinutes}
-              onChange={(e) => setTargetMinutes(Number(e.target.value))}
+              type="text"
+              inputMode="numeric"
+              value={targetInput}
+              onChange={(e) => {
+                const val = e.target.value;
+                if (val === "" || /^\d+$/.test(val)) {
+                  setTargetInput(val);
+                  if (val !== "") {
+                    const num = Math.min(Math.max(Number(val), 1), 180);
+                    setTargetMinutes(num);
+                  }
+                }
+              }}
+              onBlur={() => {
+                if (targetInput === "" || Number(targetInput) < 1) {
+                  setTargetInput("1");
+                  setTargetMinutes(1);
+                } else if (Number(targetInput) > 180) {
+                  setTargetInput("180");
+                  setTargetMinutes(180);
+                } else {
+                  setTargetInput(String(targetMinutes));
+                }
+              }}
               disabled={isRunning || elapsedSeconds > 0}
               className="text-gray-500 w-20 px-3 py-2 border border-gray-300 rounded-lg text-center focus:outline-none focus:ring-2 focus:ring-black disabled:bg-gray-100"
             />
@@ -471,15 +491,35 @@ export default function TimerPage() {
             </div>
           ) : (
             <div className="space-y-3">
-              {sortedGroups.map(([description, blocks]) => {
-                const isExpanded = expandedGroups.has(description);
-                const totalDuration = blocks.reduce((acc, b) => acc + b.duration, 0);
+              {(() => {
+                let lastDate = "";
+                return sortedGroups.map(([description, blocks]) => {
+                  const isExpanded = expandedGroups.has(description);
+                  const totalDuration = blocks.reduce((acc, b) => acc + b.duration, 0);
+                  const blockDate = new Date(blocks[0].start_time).toDateString();
+                  const showDateHeader = blockDate !== lastDate;
+                  lastDate = blockDate;
 
-                return (
-                  <div
-                    key={description}
-                    className="bg-white border border-gray-200 rounded-xl overflow-hidden"
-                  >
+                  const today = new Date().toDateString();
+                  const yesterday = new Date(Date.now() - 86400000).toDateString();
+                  const dateLabel = blockDate === today
+                    ? "Today"
+                    : blockDate === yesterday
+                    ? "Yesterday"
+                    : new Date(blocks[0].start_time).toLocaleDateString("en-US", {
+                        weekday: "long",
+                        month: "long",
+                        day: "numeric",
+                      });
+
+                  return (
+                    <div key={description}>
+                      {showDateHeader && (
+                        <p className="text-sm font-medium text-gray-500 mt-6 mb-2 first:mt-0">
+                          {dateLabel}
+                        </p>
+                      )}
+                      <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
                     {/* Group Header */}
                     <div
                       className="p-4 flex items-center justify-between gap-4 cursor-pointer hover:bg-gray-50 transition-colors"
@@ -606,9 +646,11 @@ export default function TimerPage() {
                         ))}
                       </div>
                     )}
-                  </div>
-                );
-              })}
+                      </div>
+                    </div>
+                  );
+                });
+              })()}
             </div>
           )}
         </div>
