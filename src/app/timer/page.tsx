@@ -57,6 +57,9 @@ export default function TimerPage() {
   const [startTime, setStartTime] = useState<Date | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingDescription, setEditingDescription] = useState("");
+  const [editingTimeId, setEditingTimeId] = useState<string | null>(null);
+  const [editingStartTime, setEditingStartTime] = useState("");
+  const [editingEndTime, setEditingEndTime] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [isCountdown, setIsCountdown] = useState(false);
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
@@ -241,6 +244,55 @@ export default function TimerPage() {
     setEditingDescription("");
   };
 
+  const handleEditTime = (block: TimeBlock) => {
+    setEditingTimeId(block.id);
+    const start = new Date(block.start_time);
+    const end = new Date(block.end_time);
+    setEditingStartTime(
+      `${start.getHours().toString().padStart(2, "0")}:${start.getMinutes().toString().padStart(2, "0")}`
+    );
+    setEditingEndTime(
+      `${end.getHours().toString().padStart(2, "0")}:${end.getMinutes().toString().padStart(2, "0")}`
+    );
+  };
+
+  const handleSaveTime = async (block: TimeBlock) => {
+    const [startH, startM] = editingStartTime.split(":").map(Number);
+    const [endH, endM] = editingEndTime.split(":").map(Number);
+
+    if (isNaN(startH) || isNaN(startM) || isNaN(endH) || isNaN(endM)) return;
+
+    const newStart = new Date(block.start_time);
+    newStart.setHours(startH, startM, 0, 0);
+    const newEnd = new Date(block.end_time);
+    newEnd.setHours(endH, endM, 0, 0);
+
+    const newDuration = Math.max(Math.floor((newEnd.getTime() - newStart.getTime()) / 1000), 0);
+
+    const { error } = await supabase
+      .from("time_blocks")
+      .update({
+        start_time: newStart.toISOString(),
+        end_time: newEnd.toISOString(),
+        duration: newDuration,
+      })
+      .eq("id", block.id);
+
+    if (error) {
+      console.error("Error updating time block:", error);
+      return;
+    }
+
+    setTimeBlocks((prev) =>
+      prev.map((b) =>
+        b.id === block.id
+          ? { ...b, start_time: newStart.toISOString(), end_time: newEnd.toISOString(), duration: newDuration }
+          : b
+      )
+    );
+    setEditingTimeId(null);
+  };
+
   const handleClearAll = async () => {
     if (confirm("Are you sure you want to clear all time blocks?")) {
       const { error } = await supabase.from("time_blocks").delete().neq("id", "");
@@ -257,10 +309,12 @@ export default function TimerPage() {
   const progress = Math.min((elapsedSeconds / targetSeconds) * 100, 100);
   const isOvertime = elapsedSeconds > targetSeconds;
 
-  // Group time blocks by description
+  // Group time blocks by description + date
   const groupedByDescription = timeBlocks.reduce(
     (acc, block) => {
-      const key = block.description || "Untitled session";
+      const desc = block.description || "Untitled session";
+      const date = new Date(block.start_time).toDateString();
+      const key = `${desc}|||${date}`;
       if (!acc[key]) {
         acc[key] = [];
       }
@@ -493,8 +547,9 @@ export default function TimerPage() {
             <div className="space-y-3">
               {(() => {
                 let lastDate = "";
-                return sortedGroups.map(([description, blocks]) => {
-                  const isExpanded = expandedGroups.has(description);
+                return sortedGroups.map(([groupKey, blocks]) => {
+                  const description = groupKey.split("|||")[0];
+                  const isExpanded = expandedGroups.has(groupKey);
                   const totalDuration = blocks.reduce((acc, b) => acc + b.duration, 0);
                   const blockDate = new Date(blocks[0].start_time).toDateString();
                   const showDateHeader = blockDate !== lastDate;
@@ -513,7 +568,7 @@ export default function TimerPage() {
                       });
 
                   return (
-                    <div key={description}>
+                    <div key={groupKey}>
                       {showDateHeader && (
                         <p className="text-sm font-medium text-gray-500 mt-6 mb-2 first:mt-0">
                           {dateLabel}
@@ -523,7 +578,7 @@ export default function TimerPage() {
                     {/* Group Header */}
                     <div
                       className="p-4 flex items-center justify-between gap-4 cursor-pointer hover:bg-gray-50 transition-colors"
-                      onClick={() => toggleGroup(description)}
+                      onClick={() => toggleGroup(groupKey)}
                     >
                       <div className="flex items-center gap-3 flex-1 min-w-0">
                         <button
@@ -590,38 +645,47 @@ export default function TimerPage() {
                                 <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-gray-200 text-gray-800">
                                   {formatDuration(block.duration)}
                                 </span>
-                                <span className="text-sm text-gray-500">
-                                  {formatTimeOfDay(new Date(block.start_time))} -{" "}
-                                  {formatTimeOfDay(new Date(block.end_time))}
-                                </span>
-                                <span className="text-sm text-gray-400">
-                                  {new Date(block.start_time).toLocaleDateString("en-US", {
-                                    month: "short",
-                                    day: "numeric",
-                                  })}
-                                </span>
+                                {editingTimeId === block.id ? (
+                                  <div className="flex items-center gap-1">
+                                    <input
+                                      type="time"
+                                      value={editingStartTime}
+                                      onChange={(e) => setEditingStartTime(e.target.value)}
+                                      className="text-sm text-gray-700 border border-gray-300 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-black"
+                                    />
+                                    <span className="text-sm text-gray-400">-</span>
+                                    <input
+                                      type="time"
+                                      value={editingEndTime}
+                                      onChange={(e) => setEditingEndTime(e.target.value)}
+                                      className="text-sm text-gray-700 border border-gray-300 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-black"
+                                    />
+                                    <button
+                                      onClick={() => handleSaveTime(block)}
+                                      className="ml-1 px-2 py-1 text-xs bg-black text-white rounded hover:bg-gray-800 transition-colors"
+                                    >
+                                      Save
+                                    </button>
+                                    <button
+                                      onClick={() => setEditingTimeId(null)}
+                                      className="px-2 py-1 text-xs bg-gray-200 text-gray-600 rounded hover:bg-gray-300 transition-colors"
+                                    >
+                                      Cancel
+                                    </button>
+                                  </div>
+                                ) : (
+                                  <span
+                                    className="text-sm text-gray-500 cursor-pointer hover:text-gray-700 hover:underline transition-colors"
+                                    onClick={() => handleEditTime(block)}
+                                    title="Click to edit time"
+                                  >
+                                    {formatTimeOfDay(new Date(block.start_time))} -{" "}
+                                    {formatTimeOfDay(new Date(block.end_time))}
+                                  </span>
+                                )}
                               </div>
                             </div>
                             <div className="flex items-center gap-1">
-                              {/* <button
-                                onClick={() => handleContinue(block.description)}
-                                className="p-2 text-gray-400 hover:text-green-500 transition-colors"
-                                aria-label="Continue timing"
-                                title="Continue"
-                              >
-                                <svg
-                                  xmlns="http://www.w3.org/2000/svg"
-                                  className="h-5 w-5"
-                                  viewBox="0 0 20 20"
-                                  fill="currentColor"
-                                >
-                                  <path
-                                    fillRule="evenodd"
-                                    d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z"
-                                    clipRule="evenodd"
-                                  />
-                                </svg>
-                              </button> */}
                               <button
                                 onClick={() => handleDeleteBlock(block.id)}
                                 className="p-2 text-gray-400 hover:text-red-500 transition-colors"
