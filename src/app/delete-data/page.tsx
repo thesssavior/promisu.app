@@ -1,22 +1,22 @@
 export default function DeleteData() {
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-white dark:bg-neutral-950">
       <div className="mx-auto max-w-4xl px-6 py-16 sm:py-24 lg:px-8">
         <div className="prose prose-lg max-w-none">
-          <h1 className="text-4xl font-bold tracking-tight text-gray-900 sm:text-5xl mb-2">
+          <h1 className="text-4xl font-bold tracking-tight text-gray-900 dark:text-gray-50 sm:text-5xl mb-2">
             Delete Data
           </h1>
-          <p className="text-gray-600 mb-12">
+          <p className="text-gray-600 dark:text-gray-400 mb-12">
             Last updated: November 6, 2025
           </p>
 
-          <div className="space-y-8 text-gray-700">
+          <div className="space-y-8 text-gray-700 dark:text-gray-300">
             <p>
               Your privacy is important to us. This page explains your rights regarding data deletion and how to request deletion of your personal data from Acture (Promisu).
             </p>
 
             <section className="mt-12">
-              <h2 className="text-2xl font-bold text-gray-900 mb-4">
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4">
                 Your Right to Delete Data
               </h2>
               <p className="mb-4">
@@ -35,7 +35,7 @@ export default function DeleteData() {
             </section>
 
             <section className="mt-12">
-              <h2 className="text-2xl font-bold text-gray-900 mb-4">
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4">
                 How to Request Data Deletion
               </h2>
               <p className="mb-4">
@@ -63,7 +63,7 @@ export default function DeleteData() {
             </section>
 
             <section className="mt-12">
-              <h2 className="text-2xl font-bold text-gray-900 mb-4">
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4">
                 Data Deletion Process
               </h2>
               <p className="mb-4">
@@ -81,7 +81,7 @@ export default function DeleteData() {
             </section>
 
             <section className="mt-12">
-              <h2 className="text-2xl font-bold text-gray-900 mb-4">
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4">
                 What Data Can Be Deleted
               </h2>
               <p className="mb-4">
@@ -95,14 +95,14 @@ export default function DeleteData() {
                 <li>Preferences and settings</li>
                 <li>Usage analytics linked to your account</li>
               </ul>
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 mt-6">
-                <p className="font-semibold text-blue-900 mb-2">
+              <div className="bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-900/60 rounded-lg p-6 mt-6">
+                <p className="font-semibold text-blue-900 dark:text-blue-200 mb-2">
                   📋 Data That May Be Retained
                 </p>
-                <p className="text-blue-800 mb-2">
+                <p className="text-blue-800 dark:text-blue-300 mb-2">
                   Some data may be retained for legal or legitimate business purposes:
                 </p>
-                <ul className="list-disc pl-6 space-y-1 text-blue-800">
+                <ul className="list-disc pl-6 space-y-1 text-blue-800 dark:text-blue-300">
                   <li>Transaction records and payment information (required by law)</li>
                   <li>Security logs and fraud prevention data</li>
                   <li>Anonymized or aggregated data that cannot identify you</li>
@@ -112,7 +112,7 @@ export default function DeleteData() {
             </section>
 
             <section className="mt-12">
-              <h2 className="text-2xl font-bold text-gray-900 mb-4">
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4">
                 Export Your Data Before Deletion
               </h2>
               <p className="mb-4">
@@ -129,7 +129,7 @@ export default function DeleteData() {
             </section>
 
             <section className="mt-12">
-              <h2 className="text-2xl font-bold text-gray-900 mb-4">
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4">
                 Limitations and Exceptions
               </h2>
               <p className="mb-4">
@@ -147,21 +147,21 @@ export default function DeleteData() {
             </section>
 
             <section className="mt-12">
-              <h2 className="text-2xl font-bold text-gray-900 mb-4">
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4">
                 Contact Us
               </h2>
               <p className="mb-4">
                 If you have questions about data deletion or need assistance with a deletion request, please contact us:
               </p>
-              <div className="bg-gray-50 rounded-lg p-6 space-y-3">
-                <p className="font-semibold text-gray-900">Acture (Promisu) Support</p>
+              <div className="bg-gray-50 dark:bg-neutral-900 rounded-lg p-6 space-y-3">
+                <p className="font-semibold text-gray-900 dark:text-gray-100">Acture (Promisu) Support</p>
                 <p>
                   <span className="font-medium">📧 Email:</span>{" "}
-                  <a href="mailto:tmdwn12512@gmail.com" className="text-blue-600 hover:text-blue-800 underline">
+                  <a href="mailto:tmdwn12512@gmail.com" className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 underline">
                     tmdwn12512@gmail.com
                   </a>
                 </p>
-                <p className="text-sm text-gray-600 mt-4">
+                <p className="text-sm text-gray-600 dark:text-gray-400 mt-4">
                   Please include "Data Deletion Request" or "Data Export Request" in the subject line when contacting us.
                 </p>
               </div>

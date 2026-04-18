@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import { supabase } from "@/src/lib/supabase";
+import ThemeToggle from "../ThemeToggle";
 
 interface TimeBlock {
   id: string;
@@ -340,19 +341,22 @@ export default function TimerPage() {
     .reduce((acc, block) => acc + block.duration, 0);
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-white dark:bg-neutral-950">
+      <div className="fixed top-4 right-4 z-50">
+        <ThemeToggle />
+      </div>
       <div className="mx-auto max-w-4xl px-6 py-16 sm:py-24 lg:px-8">
         {/* Header */}
         <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold tracking-tight text-gray-900 sm:text-5xl">
+          <h1 className="text-4xl font-bold tracking-tight text-gray-900 dark:text-gray-50 sm:text-5xl">
             Time Tracker
           </h1>
-          <p className="mt-4 text-lg text-gray-600">
+          <p className="mt-4 text-lg text-gray-600 dark:text-gray-400">
             Track your time blocks and stay focused
           </p>
           <a
             href="/calendar"
-            className="inline-flex items-center gap-2 mt-4 text-sm text-gray-500 hover:text-gray-700 transition-colors"
+            className="inline-flex items-center gap-2 mt-4 text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors"
           >
             <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
               <path fillRule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clipRule="evenodd" />
@@ -362,7 +366,7 @@ export default function TimerPage() {
         </div>
 
         {/* Timer Section */}
-        <div className="bg-gray-50 rounded-2xl p-8 mb-8">
+        <div className="bg-gray-50 dark:bg-neutral-900 rounded-2xl p-8 mb-8">
           {/* Mode Toggle */}
           <div className="flex items-center justify-center gap-2 mb-6">
             <button
@@ -370,8 +374,8 @@ export default function TimerPage() {
               disabled={isRunning || elapsedSeconds > 0}
               className={`px-4 py-2 rounded-l-full text-sm font-medium transition-colors ${
                 !isCountdown
-                  ? "bg-black text-white"
-                  : "bg-gray-200 text-gray-600 hover:bg-gray-300"
+                  ? "bg-black text-white dark:bg-white dark:text-black"
+                  : "bg-gray-200 text-gray-600 hover:bg-gray-300 dark:bg-neutral-700 dark:text-gray-300 dark:hover:bg-neutral-600"
               } disabled:opacity-50 disabled:cursor-not-allowed`}
             >
               Count Up
@@ -381,8 +385,8 @@ export default function TimerPage() {
               disabled={isRunning || elapsedSeconds > 0}
               className={`px-4 py-2 rounded-r-full text-sm font-medium transition-colors ${
                 isCountdown
-                  ? "bg-black text-white"
-                  : "bg-gray-200 text-gray-600 hover:bg-gray-300"
+                  ? "bg-black text-white dark:bg-white dark:text-black"
+                  : "bg-gray-200 text-gray-600 hover:bg-gray-300 dark:bg-neutral-700 dark:text-gray-300 dark:hover:bg-neutral-600"
               } disabled:opacity-50 disabled:cursor-not-allowed`}
             >
               Countdown
@@ -391,7 +395,7 @@ export default function TimerPage() {
 
           {/* Target Time Input */}
           <div className="flex items-center justify-center gap-4 mb-8">
-            <label className="text-gray-500">{isCountdown ? "Duration:" : "Target:"}</label>
+            <label className="text-gray-500 dark:text-gray-400">{isCountdown ? "Duration:" : "Target:"}</label>
             <input
               type="text"
               inputMode="numeric"
@@ -418,9 +422,9 @@ export default function TimerPage() {
                 }
               }}
               disabled={isRunning || elapsedSeconds > 0}
-              className="text-gray-500 w-20 px-3 py-2 border border-gray-300 rounded-lg text-center focus:outline-none focus:ring-2 focus:ring-black disabled:bg-gray-100"
+              className="text-gray-700 dark:text-gray-200 w-20 px-3 py-2 border border-gray-300 dark:border-neutral-700 bg-white dark:bg-neutral-800 rounded-lg text-center focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-white disabled:bg-gray-100 dark:disabled:bg-neutral-900"
             />
-            <span className="text-gray-500">minutes</span>
+            <span className="text-gray-500 dark:text-gray-400">minutes</span>
           </div>
 
           {/* Timer Display */}
@@ -429,7 +433,7 @@ export default function TimerPage() {
               <>
                 <div
                   className={`text-7xl font-mono font-bold ${
-                    isOvertime ? "text-red-500" : "text-gray-900"
+                    isOvertime ? "text-red-500" : "text-gray-900 dark:text-gray-50"
                   }`}
                 >
                   {isOvertime
@@ -444,7 +448,7 @@ export default function TimerPage() {
               <>
                 <div
                   className={`text-7xl font-mono font-bold ${
-                    isOvertime ? "text-red-500" : "text-gray-900"
+                    isOvertime ? "text-red-500" : "text-gray-900 dark:text-gray-50"
                   }`}
                 >
                   {formatTime(elapsedSeconds)}
@@ -459,7 +463,7 @@ export default function TimerPage() {
           </div>
 
           {/* Progress Bar */}
-          <div className="w-full bg-gray-200 rounded-full h-3 mb-8">
+          <div className="w-full bg-gray-200 dark:bg-neutral-700 rounded-full h-3 mb-8">
             <div
               className={`h-3 rounded-full transition-all duration-300 ${
                 isOvertime ? "bg-red-500" : "bg-green-500"
@@ -479,7 +483,7 @@ export default function TimerPage() {
               placeholder="What are you working on?"
               value={currentDescription}
               onChange={(e) => setCurrentDescription(e.target.value)}
-              className="text-gray-500 w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-black placeholder:text-gray-500"
+              className="text-gray-700 dark:text-gray-200 w-full px-4 py-3 border border-gray-300 dark:border-neutral-700 bg-white dark:bg-neutral-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-white placeholder:text-gray-500 dark:placeholder:text-gray-500"
             />
           </div>
 
@@ -488,7 +492,7 @@ export default function TimerPage() {
             {!isRunning ? (
               <button
                 onClick={handleStart}
-                className="px-8 py-3 bg-black text-white rounded-full font-semibold hover:bg-gray-800 transition-colors"
+                className="px-8 py-3 bg-black text-white rounded-full font-semibold hover:bg-gray-800 transition-colors dark:bg-white dark:text-black dark:hover:bg-gray-200"
               >
                 {elapsedSeconds === 0 ? "Start" : "Resume"}
               </button>
@@ -510,7 +514,7 @@ export default function TimerPage() {
                 </button>
                 <button
                   onClick={handleReset}
-                  className="px-8 py-3 bg-gray-300 text-gray-700 rounded-full font-semibold hover:bg-gray-400 transition-colors"
+                  className="px-8 py-3 bg-gray-300 text-gray-700 rounded-full font-semibold hover:bg-gray-400 transition-colors dark:bg-neutral-700 dark:text-gray-200 dark:hover:bg-neutral-600"
                 >
                   Reset
                 </button>
@@ -521,10 +525,10 @@ export default function TimerPage() {
 
         {/* Today's Summary */}
         {totalTodaySeconds > 0 && (
-          <div className="bg-green-50 border border-green-200 rounded-xl p-6 mb-8">
+          <div className="bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-900/50 rounded-xl p-6 mb-8">
             <div className="flex items-center justify-between">
-              <span className="text-green-800 font-medium">Total today</span>
-              <span className="text-2xl font-bold text-green-700">
+              <span className="text-green-800 dark:text-green-300 font-medium">Total today</span>
+              <span className="text-2xl font-bold text-green-700 dark:text-green-400">
                 {formatDuration(totalTodaySeconds)}
               </span>
             </div>
@@ -533,14 +537,14 @@ export default function TimerPage() {
 
         {/* Time Blocks History */}
         <div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-6">Time Blocks</h2>
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-50 mb-6">Time Blocks</h2>
 
           {isLoading ? (
-            <div className="text-center py-12 text-gray-500">
+            <div className="text-center py-12 text-gray-500 dark:text-gray-400">
               <p>Loading...</p>
             </div>
           ) : sortedGroups.length === 0 ? (
-            <div className="text-center py-12 text-gray-500">
+            <div className="text-center py-12 text-gray-500 dark:text-gray-400">
               <p>No time blocks yet. Start tracking your time!</p>
             </div>
           ) : (
@@ -570,19 +574,19 @@ export default function TimerPage() {
                   return (
                     <div key={groupKey}>
                       {showDateHeader && (
-                        <p className="text-sm font-medium text-gray-500 mt-6 mb-2 first:mt-0">
+                        <p className="text-sm font-medium text-gray-500 dark:text-gray-400 mt-6 mb-2 first:mt-0">
                           {dateLabel}
                         </p>
                       )}
-                      <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
+                      <div className="bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 rounded-xl overflow-hidden">
                     {/* Group Header */}
                     <div
-                      className="p-4 flex items-center justify-between gap-4 cursor-pointer hover:bg-gray-50 transition-colors"
+                      className="p-4 flex items-center justify-between gap-4 cursor-pointer hover:bg-gray-50 dark:hover:bg-neutral-800 transition-colors"
                       onClick={() => toggleGroup(groupKey)}
                     >
                       <div className="flex items-center gap-3 flex-1 min-w-0">
                         <button
-                          className="p-1 text-gray-400 hover:text-gray-600 transition-colors"
+                          className="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors"
                           aria-label={isExpanded ? "Collapse" : "Expand"}
                         >
                           <svg
@@ -599,10 +603,10 @@ export default function TimerPage() {
                           </svg>
                         </button>
                         <div className="flex-1 min-w-0">
-                          <p className={`font-medium truncate ${description === "Untitled session" ? "text-gray-400 italic" : "text-gray-900"}`}>
+                          <p className={`font-medium truncate ${description === "Untitled session" ? "text-gray-400 dark:text-gray-500 italic" : "text-gray-900 dark:text-gray-100"}`}>
                             {description}
                           </p>
-                          <div className="flex items-center gap-2 text-sm text-gray-500">
+                          <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
                             <span>{formatDuration(totalDuration)}</span>
                             <span>·</span>
                             <span>{blocks.length} {blocks.length === 1 ? "session" : "sessions"}</span>
@@ -634,15 +638,15 @@ export default function TimerPage() {
 
                     {/* Expanded Blocks */}
                     {isExpanded && (
-                      <div className="border-t border-gray-200 bg-gray-50">
+                      <div className="border-t border-gray-200 dark:border-neutral-800 bg-gray-50 dark:bg-neutral-800/50">
                         {blocks.map((block) => (
                           <div
                             key={block.id}
-                            className="p-4 border-b border-gray-200 last:border-b-0 flex items-center justify-between gap-4"
+                            className="p-4 border-b border-gray-200 dark:border-neutral-800 last:border-b-0 flex items-center justify-between gap-4"
                           >
                             <div className="flex-1 min-w-0">
                               <div className="flex items-center gap-3">
-                                <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-gray-200 text-gray-800">
+                                <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-gray-200 dark:bg-neutral-700 text-gray-800 dark:text-gray-200">
                                   {formatDuration(block.duration)}
                                 </span>
                                 {editingTimeId === block.id ? (
@@ -651,31 +655,31 @@ export default function TimerPage() {
                                       type="time"
                                       value={editingStartTime}
                                       onChange={(e) => setEditingStartTime(e.target.value)}
-                                      className="text-sm text-gray-700 border border-gray-300 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-black"
+                                      className="text-sm text-gray-700 dark:text-gray-200 border border-gray-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-white"
                                     />
                                     <span className="text-sm text-gray-400">-</span>
                                     <input
                                       type="time"
                                       value={editingEndTime}
                                       onChange={(e) => setEditingEndTime(e.target.value)}
-                                      className="text-sm text-gray-700 border border-gray-300 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-black"
+                                      className="text-sm text-gray-700 dark:text-gray-200 border border-gray-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-white"
                                     />
                                     <button
                                       onClick={() => handleSaveTime(block)}
-                                      className="ml-1 px-2 py-1 text-xs bg-black text-white rounded hover:bg-gray-800 transition-colors"
+                                      className="ml-1 px-2 py-1 text-xs bg-black text-white rounded hover:bg-gray-800 transition-colors dark:bg-white dark:text-black dark:hover:bg-gray-200"
                                     >
                                       Save
                                     </button>
                                     <button
                                       onClick={() => setEditingTimeId(null)}
-                                      className="px-2 py-1 text-xs bg-gray-200 text-gray-600 rounded hover:bg-gray-300 transition-colors"
+                                      className="px-2 py-1 text-xs bg-gray-200 text-gray-600 rounded hover:bg-gray-300 transition-colors dark:bg-neutral-700 dark:text-gray-300 dark:hover:bg-neutral-600"
                                     >
                                       Cancel
                                     </button>
                                   </div>
                                 ) : (
                                   <span
-                                    className="text-sm text-gray-500 cursor-pointer hover:text-gray-700 hover:underline transition-colors"
+                                    className="text-sm text-gray-500 dark:text-gray-400 cursor-pointer hover:text-gray-700 dark:hover:text-gray-200 hover:underline transition-colors"
                                     onClick={() => handleEditTime(block)}
                                     title="Click to edit time"
                                   >
@@ -721,7 +725,7 @@ export default function TimerPage() {
 
         {/* Clear All Button */}
         {timeBlocks.length > 0 && (
-          <div className="mt-8 pt-8 border-t border-gray-200">
+          <div className="mt-8 pt-8 border-t border-gray-200 dark:border-neutral-800">
             <button onClick={handleClearAll} className="text-red-500 hover:text-red-700 text-sm font-medium">
               Clear all time blocks
             </button>

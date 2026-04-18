@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/src/lib/supabase";
+import ThemeToggle from "../ThemeToggle";
 
 interface TimeBlock {
   id: string;
@@ -68,14 +69,14 @@ const TOTAL_HOURS = END_HOUR - START_HOUR;
 
 // Color palette for different descriptions
 const COLORS = [
-  { bg: "bg-blue-100", border: "border-blue-300", text: "text-blue-800" },
-  { bg: "bg-green-100", border: "border-green-300", text: "text-green-800" },
-  { bg: "bg-purple-100", border: "border-purple-300", text: "text-purple-800" },
-  { bg: "bg-orange-100", border: "border-orange-300", text: "text-orange-800" },
-  { bg: "bg-pink-100", border: "border-pink-300", text: "text-pink-800" },
-  { bg: "bg-teal-100", border: "border-teal-300", text: "text-teal-800" },
-  { bg: "bg-yellow-100", border: "border-yellow-300", text: "text-yellow-800" },
-  { bg: "bg-red-100", border: "border-red-300", text: "text-red-800" },
+  { bg: "bg-blue-100 dark:bg-blue-950/60", border: "border-blue-300 dark:border-blue-700", text: "text-blue-800 dark:text-blue-200" },
+  { bg: "bg-green-100 dark:bg-green-950/60", border: "border-green-300 dark:border-green-700", text: "text-green-800 dark:text-green-200" },
+  { bg: "bg-purple-100 dark:bg-purple-950/60", border: "border-purple-300 dark:border-purple-700", text: "text-purple-800 dark:text-purple-200" },
+  { bg: "bg-orange-100 dark:bg-orange-950/60", border: "border-orange-300 dark:border-orange-700", text: "text-orange-800 dark:text-orange-200" },
+  { bg: "bg-pink-100 dark:bg-pink-950/60", border: "border-pink-300 dark:border-pink-700", text: "text-pink-800 dark:text-pink-200" },
+  { bg: "bg-teal-100 dark:bg-teal-950/60", border: "border-teal-300 dark:border-teal-700", text: "text-teal-800 dark:text-teal-200" },
+  { bg: "bg-yellow-100 dark:bg-yellow-950/60", border: "border-yellow-300 dark:border-yellow-700", text: "text-yellow-800 dark:text-yellow-200" },
+  { bg: "bg-red-100 dark:bg-red-950/60", border: "border-red-300 dark:border-red-700", text: "text-red-800 dark:text-red-200" },
 ];
 
 function getColorForDescription(description: string, colorMap: Map<string, number>): typeof COLORS[0] {
@@ -184,81 +185,82 @@ export default function CalendarPage() {
     .reduce((acc, block) => acc + block.duration, 0);
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-white dark:bg-neutral-950">
       <div className="mx-auto max-w-7xl px-4 py-8">
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Calendar</h1>
-            <p className="text-sm text-gray-500 mt-1">
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-50">Calendar</h1>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
               {weekTotalSeconds > 0 && `${formatDuration(weekTotalSeconds)} this week`}
             </p>
           </div>
           <div className="flex items-center gap-2">
             <button
               onClick={goToToday}
-              className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+              className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-200 bg-white dark:bg-neutral-900 border border-gray-300 dark:border-neutral-700 rounded-lg hover:bg-gray-50 dark:hover:bg-neutral-800 transition-colors"
             >
               Today
             </button>
-            <div className="flex items-center border border-gray-300 rounded-lg overflow-hidden">
+            <div className="flex items-center border border-gray-300 dark:border-neutral-700 rounded-lg overflow-hidden">
               <button
                 onClick={goToPreviousWeek}
-                className="p-2 hover:bg-gray-100 transition-colors"
+                className="p-2 hover:bg-gray-100 dark:hover:bg-neutral-800 transition-colors"
                 aria-label="Previous week"
               >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-600" viewBox="0 0 20 20" fill="currentColor">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-600 dark:text-gray-300" viewBox="0 0 20 20" fill="currentColor">
                   <path fillRule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clipRule="evenodd" />
                 </svg>
               </button>
-              <span className="px-4 py-2 text-sm font-medium text-gray-700 border-x border-gray-300 min-w-[200px] text-center">
+              <span className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-200 border-x border-gray-300 dark:border-neutral-700 min-w-[200px] text-center">
                 {weekLabel}
               </span>
               <button
                 onClick={goToNextWeek}
-                className="p-2 hover:bg-gray-100 transition-colors"
+                className="p-2 hover:bg-gray-100 dark:hover:bg-neutral-800 transition-colors"
                 aria-label="Next week"
               >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-600" viewBox="0 0 20 20" fill="currentColor">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-600 dark:text-gray-300" viewBox="0 0 20 20" fill="currentColor">
                   <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
                 </svg>
               </button>
             </div>
             <a
               href="/timer"
-              className="px-4 py-2 text-sm font-medium text-white bg-black rounded-lg hover:bg-gray-800 transition-colors"
+              className="px-4 py-2 text-sm font-medium text-white bg-black rounded-lg hover:bg-gray-800 transition-colors dark:bg-white dark:text-black dark:hover:bg-gray-200"
             >
               Timer
             </a>
+            <ThemeToggle />
           </div>
         </div>
 
         {isLoading ? (
-          <div className="text-center py-12 text-gray-500">
+          <div className="text-center py-12 text-gray-500 dark:text-gray-400">
             <p>Loading...</p>
           </div>
         ) : (
-          <div className="border border-gray-200 rounded-xl overflow-hidden">
+          <div className="border border-gray-200 dark:border-neutral-800 rounded-xl overflow-hidden">
             {/* Scrollable container for both header and grid */}
             <div className="overflow-y-auto max-h-[calc(100vh-200px)]">
               {/* Day Headers - sticky */}
-              <div className="grid grid-cols-[60px_repeat(7,1fr)] border-b border-gray-200 bg-gray-50 sticky top-0 z-20">
+              <div className="grid grid-cols-[60px_repeat(7,1fr)] border-b border-gray-200 dark:border-neutral-800 bg-gray-50 dark:bg-neutral-900 sticky top-0 z-20">
                 <div className="p-2" /> {/* Time column spacer */}
                 {weekDays.map((day, index) => {
                   const isToday = isSameDay(day, today);
                   return (
                     <div
                       key={index}
-                      className={`p-3 text-center border-l border-gray-200 ${isToday ? "bg-blue-50" : "bg-gray-50"}`}
+                      className={`p-3 text-center border-l border-gray-200 dark:border-neutral-800 ${isToday ? "bg-blue-50 dark:bg-blue-950/40" : "bg-gray-50 dark:bg-neutral-900"}`}
                     >
-                      <div className="text-xs font-medium text-gray-500 uppercase">
+                      <div className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">
                         {day.toLocaleDateString("en-US", { weekday: "short" })}
                       </div>
                       <div
                         className={`text-lg font-semibold mt-1 ${
                           isToday
                             ? "bg-blue-600 text-white w-8 h-8 rounded-full flex items-center justify-center mx-auto"
-                            : "text-gray-900"
+                            : "text-gray-900 dark:text-gray-100"
                         }`}
                       >
                         {day.getDate()}
@@ -275,7 +277,7 @@ export default function CalendarPage() {
                   {Array.from({ length: TOTAL_HOURS }, (_, i) => i + START_HOUR).map((hour) => (
                     <div
                       key={hour}
-                      className="pr-2 text-right text-xs text-gray-400 relative"
+                      className="pr-2 text-right text-xs text-gray-400 dark:text-gray-500 relative"
                       style={{ height: HOUR_HEIGHT }}
                     >
                       <span className="absolute -top-2 right-2">
@@ -293,13 +295,13 @@ export default function CalendarPage() {
                   return (
                     <div
                       key={dayIndex}
-                      className={`relative border-l border-gray-200 ${isToday ? "bg-blue-50/30" : ""}`}
+                      className={`relative border-l border-gray-200 dark:border-neutral-800 ${isToday ? "bg-blue-50/30 dark:bg-blue-950/20" : ""}`}
                     >
                       {/* Hour lines */}
                       {Array.from({ length: TOTAL_HOURS }, (_, i) => (
                         <div
                           key={i}
-                          className="border-t border-gray-100"
+                          className="border-t border-gray-100 dark:border-neutral-800/70"
                           style={{ height: HOUR_HEIGHT }}
                         />
                       ))}
@@ -328,12 +330,12 @@ export default function CalendarPage() {
                               {block.description || "Untitled"}
                             </div>
                             {height > 35 && (
-                              <div className="text-xs text-gray-500 truncate">
+                              <div className="text-xs text-gray-500 dark:text-gray-400 truncate">
                                 {formatTimeShort(new Date(block.start_time))} - {formatTimeShort(new Date(block.end_time))}
                               </div>
                             )}
                             {height > 55 && (
-                              <div className="text-xs text-gray-400">
+                              <div className="text-xs text-gray-400 dark:text-gray-500">
                                 {formatDuration(block.duration)}
                               </div>
                             )}
@@ -367,16 +369,16 @@ export default function CalendarPage() {
             onClick={() => setSelectedBlock(null)}
           >
             <div
-              className="bg-white rounded-2xl shadow-xl max-w-md w-full p-6"
+              className="bg-white dark:bg-neutral-900 rounded-2xl shadow-xl max-w-md w-full p-6"
               onClick={(e) => e.stopPropagation()}
             >
               <div className="flex items-start justify-between mb-4">
-                <h3 className="text-xl font-semibold text-gray-900">
+                <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-50">
                   {selectedBlock.description || "Untitled"}
                 </h3>
                 <button
                   onClick={() => setSelectedBlock(null)}
-                  className="p-1 text-gray-400 hover:text-gray-600 transition-colors"
+                  className="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors"
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -386,26 +388,26 @@ export default function CalendarPage() {
 
               <div className="space-y-4">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-600" viewBox="0 0 20 20" fill="currentColor">
+                  <div className="w-10 h-10 rounded-full bg-gray-100 dark:bg-neutral-800 flex items-center justify-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-600 dark:text-gray-300" viewBox="0 0 20 20" fill="currentColor">
                       <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
                     </svg>
                   </div>
                   <div>
-                    <p className="text-sm text-gray-500">Duration</p>
-                    <p className="text-lg font-semibold text-gray-900">{formatDuration(selectedBlock.duration)}</p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">Duration</p>
+                    <p className="text-lg font-semibold text-gray-900 dark:text-gray-100">{formatDuration(selectedBlock.duration)}</p>
                   </div>
                 </div>
 
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-600" viewBox="0 0 20 20" fill="currentColor">
+                  <div className="w-10 h-10 rounded-full bg-gray-100 dark:bg-neutral-800 flex items-center justify-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-600 dark:text-gray-300" viewBox="0 0 20 20" fill="currentColor">
                       <path fillRule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clipRule="evenodd" />
                     </svg>
                   </div>
                   <div>
-                    <p className="text-sm text-gray-500">Date</p>
-                    <p className="text-lg font-semibold text-gray-900">
+                    <p className="text-sm text-gray-500 dark:text-gray-400">Date</p>
+                    <p className="text-lg font-semibold text-gray-900 dark:text-gray-100">
                       {new Date(selectedBlock.start_time).toLocaleDateString("en-US", {
                         weekday: "long",
                         month: "long",
@@ -417,24 +419,24 @@ export default function CalendarPage() {
                 </div>
 
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-600" viewBox="0 0 20 20" fill="currentColor">
+                  <div className="w-10 h-10 rounded-full bg-gray-100 dark:bg-neutral-800 flex items-center justify-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-600 dark:text-gray-300" viewBox="0 0 20 20" fill="currentColor">
                       <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
                     </svg>
                   </div>
                   <div>
-                    <p className="text-sm text-gray-500">Time</p>
-                    <p className="text-lg font-semibold text-gray-900">
+                    <p className="text-sm text-gray-500 dark:text-gray-400">Time</p>
+                    <p className="text-lg font-semibold text-gray-900 dark:text-gray-100">
                       {formatTimeShort(new Date(selectedBlock.start_time))} - {formatTimeShort(new Date(selectedBlock.end_time))}
                     </p>
                   </div>
                 </div>
               </div>
 
-              <div className="mt-6 pt-4 border-t border-gray-200">
+              <div className="mt-6 pt-4 border-t border-gray-200 dark:border-neutral-800">
                 <a
                   href="/timer"
-                  className="block w-full text-center px-4 py-3 bg-black text-white rounded-lg font-medium hover:bg-gray-800 transition-colors"
+                  className="block w-full text-center px-4 py-3 bg-black text-white rounded-lg font-medium hover:bg-gray-800 transition-colors dark:bg-white dark:text-black dark:hover:bg-gray-200"
                 >
                   Continue this task
                 </a>

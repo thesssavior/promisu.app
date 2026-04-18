@@ -17,15 +17,20 @@ export const metadata: Metadata = {
   description: "Set goals, track progress, and transform your habits into lasting change. Daily habits tracking with visual progress grids and AI-powered guidance.",
 };
 
+const themeInitScript = `(function(){try{var s=localStorage.getItem('theme');var m=window.matchMedia('(prefers-color-scheme: dark)').matches;if(s==='dark'||(!s&&m)){document.documentElement.classList.add('dark');}}catch(e){}})();`;
+
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
+      </head>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased bg-white text-gray-900 dark:bg-neutral-950 dark:text-gray-100`}
       >
         {children}
       </body>

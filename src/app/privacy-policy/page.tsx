@@ -1,16 +1,16 @@
 export default function PrivacyPolicy() {
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-white dark:bg-neutral-950">
       <div className="mx-auto max-w-4xl px-6 py-16 sm:py-24 lg:px-8">
         <div className="prose prose-lg max-w-none">
-          <h1 className="text-4xl font-bold tracking-tight text-gray-900 sm:text-5xl mb-2">
+          <h1 className="text-4xl font-bold tracking-tight text-gray-900 dark:text-gray-50 sm:text-5xl mb-2">
             Privacy Policy
           </h1>
-          <p className="text-gray-600 mb-12">
+          <p className="text-gray-600 dark:text-gray-400 mb-12">
             Last updated: November 6, 2025
           </p>
 
-          <div className="space-y-8 text-gray-700">
+          <div className="space-y-8 text-gray-700 dark:text-gray-300">
             <p>
               Thank you for using Acture (Promisu) ("the App," "we," "us," or "our").
             </p>
@@ -20,14 +20,14 @@ export default function PrivacyPolicy() {
             </p>
 
             <section className="mt-12">
-              <h2 className="text-2xl font-bold text-gray-900 mb-4">
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4">
                 1. Information We Collect
               </h2>
               <p className="mb-4">
                 We collect the following types of information to provide and improve our services:
               </p>
 
-              <h3 className="text-xl font-semibold text-gray-900 mb-3 mt-6">
+              <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-3 mt-6">
                 a. Personal Information
               </h3>
               <ul className="list-disc pl-6 space-y-2 mb-6">
@@ -35,7 +35,7 @@ export default function PrivacyPolicy() {
                 <li>Username or display name (optional)</li>
               </ul>
 
-              <h3 className="text-xl font-semibold text-gray-900 mb-3 mt-6">
+              <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-3 mt-6">
                 b. Usage Data
               </h3>
               <ul className="list-disc pl-6 space-y-2 mb-6">
@@ -44,7 +44,7 @@ export default function PrivacyPolicy() {
                 <li>Crash reports and performance analytics</li>
               </ul>
 
-              <h3 className="text-xl font-semibold text-gray-900 mb-3 mt-6">
+              <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-3 mt-6">
                 c. Automatically Collected Data
               </h3>
               <ul className="list-disc pl-6 space-y-2">
@@ -55,7 +55,7 @@ export default function PrivacyPolicy() {
             </section>
 
             <section className="mt-12">
-              <h2 className="text-2xl font-bold text-gray-900 mb-4">
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4">
                 2. How We Use Your Information
               </h2>
               <p className="mb-4">
@@ -73,7 +73,7 @@ export default function PrivacyPolicy() {
             </section>
 
             <section className="mt-12">
-              <h2 className="text-2xl font-bold text-gray-900 mb-4">
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4">
                 3. Data Storage and Security
               </h2>
               <p className="mb-4">
@@ -88,7 +88,7 @@ export default function PrivacyPolicy() {
             </section>
 
             <section className="mt-12">
-              <h2 className="text-2xl font-bold text-gray-900 mb-4">
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4">
                 4. Data Sharing and Disclosure
               </h2>
               <p className="mb-4">
@@ -104,7 +104,7 @@ export default function PrivacyPolicy() {
             </section>
 
             <section className="mt-12">
-              <h2 className="text-2xl font-bold text-gray-900 mb-4">
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4">
                 5. Children's Privacy
               </h2>
               <p className="mb-4">
@@ -119,7 +119,7 @@ export default function PrivacyPolicy() {
             </section>
 
             <section className="mt-12">
-              <h2 className="text-2xl font-bold text-gray-900 mb-4">
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4">
                 6. Your Data Rights
               </h2>
               <p className="mb-4">
@@ -136,7 +136,7 @@ export default function PrivacyPolicy() {
             </section>
 
             <section className="mt-12">
-              <h2 className="text-2xl font-bold text-gray-900 mb-4">
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4">
                 7. International Data Transfers
               </h2>
               <p>
@@ -145,7 +145,7 @@ export default function PrivacyPolicy() {
             </section>
 
             <section className="mt-12">
-              <h2 className="text-2xl font-bold text-gray-900 mb-4">
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4">
                 8. Changes to This Policy
               </h2>
               <p className="mb-4">
@@ -157,17 +157,17 @@ export default function PrivacyPolicy() {
             </section>
 
             <section className="mt-12">
-              <h2 className="text-2xl font-bold text-gray-900 mb-4">
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4">
                 9. Contact Us
               </h2>
               <p className="mb-4">
                 If you have any questions, concerns, or requests regarding this Privacy Policy, please contact:
               </p>
-              <div className="bg-gray-50 rounded-lg p-6 space-y-3">
-                <p className="font-semibold text-gray-900">Acture (Promisu) Support</p>
+              <div className="bg-gray-50 dark:bg-neutral-900 rounded-lg p-6 space-y-3">
+                <p className="font-semibold text-gray-900 dark:text-gray-100">Acture (Promisu) Support</p>
                 <p>
                   <span className="font-medium">📧 Email:</span>{" "}
-                  <a href="mailto:support@acture.app" className="text-blue-600 hover:text-blue-800 underline">
+                  <a href="mailto:support@acture.app" className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 underline">
                     support@acture.app
                   </a>
                 </p>
